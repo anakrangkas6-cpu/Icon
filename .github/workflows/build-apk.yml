@@ -1,0 +1,100 @@
+name: Build Sunlit OneUI Icon Pack APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build & Sign Android Icon Pack APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Ensure PNG icon assets from SVG if needed
+        working-directory: android-iconpack
+        run: |
+          if [ -d "svg" ] && [ ! -f "app/src/main/res/drawable-nodpi/ic_clock.png" ]; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq librsvg2-bin fontconfig curl
+            mkdir -p ~/.local/share/fonts
+            curl -sSL -o ~/.local/share/fonts/Antonio-Bold.ttf "https://github.com/google/fonts/raw/main/ofl/antonio/static/Antonio-Bold.ttf" || true
+            curl -sSL -o ~/.local/share/fonts/Outfit-Bold.ttf "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-Bold.ttf" || true
+            curl -sSL -o ~/.local/share/fonts/Outfit-SemiBold.ttf "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-SemiBold.ttf" || true
+            fc-cache -f
+            mkdir -p app/src/main/res/drawable-nodpi
+            cd svg
+            for f in *.svg; do
+              name=$(basename "$f" .svg)
+              rsvg-convert -w 512 -h 512 "$f" -o "../app/src/main/res/drawable-nodpi/${name}.png"
+            done
+          fi
+
+      - name: Build Debug & Release APKs
+        working-directory: android-iconpack
+        run: gradle assembleDebug assembleRelease --no-daemon
+
+      - name: Sign Release APK
+        run: |
+          UNSIGNED_APK="android-iconpack/app/build/outputs/apk/release/app-release-unsigned.apk"
+          SIGNED_APK="SunlitOneUI-IconPack-release.apk"
+          DEBUG_APK="android-iconpack/app/build/outputs/apk/debug/app-debug.apk"
+          cp "$DEBUG_APK" "SunlitOneUI-IconPack-debug.apk"
+
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name "apksigner" | sort -V | tail -n 1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -name "zipalign" | sort -V | tail -n 1)
+
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+            KS_PASS="${{ secrets.KEYSTORE_PASSWORD }}"
+            KEY_ALIAS="${{ secrets.KEY_ALIAS }}"
+            KEY_PASS="${{ secrets.KEY_PASSWORD }}"
+          else
+            keytool -genkeypair -v -keystore release.keystore -alias sunlit -keyalg RSA -keysize 2048 -validity 10000 -storepass sunlit123 -keypass sunlit123 -dname "CN=Sunlit OneUI, O=IconPack, C=ID"
+            KS_PASS="sunlit123"
+            KEY_ALIAS="sunlit"
+            KEY_PASS="sunlit123"
+          fi
+
+          "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" aligned-release.apk
+          "$APKSIGNER" sign --ks release.keystore --ks-pass "pass:$KS_PASS" --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" --out "$SIGNED_APK" aligned-release.apk
+          rm -f release.keystore aligned-release.apk
+
+      - name: Upload Signed APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SunlitOneUI-IconPack-APK
+          path: |
+            SunlitOneUI-IconPack-release.apk
+            SunlitOneUI-IconPack-debug.apk
+          retention-days: 30
+
+      - name: Publish GitHub Release on Tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            SunlitOneUI-IconPack-release.apk
+            SunlitOneUI-IconPack-debug.apk

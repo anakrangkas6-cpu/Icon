@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sunlit OneUI Icon Pack: Samsung Good Lock Theme Park & Third-Party Launcher Mappings -->
+    <iconback img1="icon_back" />
+    <iconmask img1="icon_mask" />
+    <iconupon img1="icon_upon" />
+    <scale factor="0.78" />
+
+    <!-- Clock -->
+    <item component="ComponentInfo{com.sec.android.app.clockpackage/com.sec.android.app.clockpackage.ClockPackage}" drawable="ic_clock" />
+    <item component="ComponentInfo{com.google.android.deskclock/com.android.deskclock.DeskClock}" drawable="ic_clock" />
+    <item component="ComponentInfo{com.android.deskclock/com.android.deskclock.DeskClock}" drawable="ic_clock" />
+
+    <!-- Calendar -->
+    <item component="ComponentInfo{com.samsung.android.calendar/com.samsung.android.app.calendar.activity.MainActivity}" drawable="ic_calendar" />
+    <item component="ComponentInfo{com.samsung.android.calendar/com.android.calendar.AllInOneActivity}" drawable="ic_calendar" />
+    <item component="ComponentInfo{com.google.android.calendar/com.android.calendar.AllInOneActivity}" drawable="ic_calendar" />
+
+    <!-- Launcher -->
+    <item component="ComponentInfo{com.sec.android.app.launcher/com.sec.android.app.launcher.activities.LauncherActivity}" drawable="ic_launcher_app" />
+    <item component="ComponentInfo{com.samsung.android.goodlock/com.samsung.android.goodlock.MainActivity}" drawable="ic_launcher_app" />
+    <item component="ComponentInfo{com.samsung.android.themepark/com.samsung.android.themepark.MainActivity}" drawable="ic_launcher_app" />
+    <item component="ComponentInfo{com.teslacoilsw.launcher/com.teslacoilsw.launcher.NovaLauncher}" drawable="ic_launcher_app" />
+
+    <!-- Games -->
+    <item component="ComponentInfo{com.samsung.android.game.gamehome/com.samsung.android.game.gamehome.activity.StartActivity}" drawable="ic_games" />
+    <item component="ComponentInfo{com.google.android.play.games/com.google.android.gms.games.ui.destination.main.MainActivity}" drawable="ic_games" />
+
+    <!-- VideoCall -->
+    <item component="ComponentInfo{com.google.android.apps.tachyon/com.google.android.apps.tachyon.MainActivity}" drawable="ic_videocall" />
+    <item component="ComponentInfo{com.google.android.apps.meetings/com.google.android.apps.meetings.SplashActivity}" drawable="ic_videocall" />
+    <item component="ComponentInfo{com.samsung.android.videocall/com.samsung.android.videocall.VideoCallActivity}" drawable="ic_videocall" />
+    <item component="ComponentInfo{us.zoom.videomeetings/com.zipow.videobox.LauncherActivity}" drawable="ic_videocall" />
+
+    <!-- Docs -->
+    <item component="ComponentInfo{com.google.android.apps.docs.editors.docs/com.google.android.apps.docs.app.NewMainProxyActivity}" drawable="ic_docs" />
+    <item component="ComponentInfo{com.google.android.apps.docs/com.google.android.apps.docs.app.NewMainProxyActivity}" drawable="ic_docs" />
+    <item component="ComponentInfo{com.samsung.android.app.notes/com.samsung.android.app.notes.memolist.MemoListActivity}" drawable="ic_docs" />
+
+    <!-- Calculator -->
+    <item component="ComponentInfo{com.sec.android.app.popupcalculator/com.sec.android.app.popupcalculator.Calculator}" drawable="ic_calculator" />
+    <item component="ComponentInfo{com.google.android.calculator/com.android.calculator2.Calculator}" drawable="ic_calculator" />
+    <item component="ComponentInfo{com.android.calculator2/com.android.calculator2.Calculator}" drawable="ic_calculator" />
+
+    <!-- Settings -->
+    <item component="ComponentInfo{com.android.settings/com.android.settings.Settings}" drawable="ic_settings" />
+    <item component="ComponentInfo{com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}" drawable="ic_settings" />
+
+    <!-- Maps -->
+    <item component="ComponentInfo{com.google.android.apps.maps/com.google.android.maps.MapsActivity}" drawable="ic_maps" />
+    <item component="ComponentInfo{com.waze/com.waze.FreeMapAppActivity}" drawable="ic_maps" />
+
+    <!-- Files -->
+    <item component="ComponentInfo{com.sec.android.app.myfiles/com.sec.android.app.myfiles.external.ui.MainActivity}" drawable="ic_files" />
+    <item component="ComponentInfo{com.sec.android.app.myfiles/com.sec.android.app.myfiles.common.MainActivity}" drawable="ic_files" />
+    <item component="ComponentInfo{com.google.android.apps.nbu.files/com.google.android.apps.nbu.files.home.HomeActivity}" drawable="ic_files" />
+    <item component="ComponentInfo{com.android.documentsui/com.android.documentsui.files.FilesActivity}" drawable="ic_files" />
+
+    <!-- Phone -->
+    <item component="ComponentInfo{com.samsung.android.dialer/com.samsung.android.dialer.DialtactsActivity}" drawable="ic_phone" />
+    <item component="ComponentInfo{com.google.android.dialer/com.google.android.dialer.extensions.GoogleDialtactsActivity}" drawable="ic_phone" />
+    <item component="ComponentInfo{com.android.dialer/com.android.dialer.main.impl.MainActivity}" drawable="ic_phone" />
+    <item component="ComponentInfo{com.samsung.android.app.contacts/com.samsung.android.app.contacts.contactslist.PeopleActivity}" drawable="ic_phone" />
+
+    <!-- Messages -->
+    <item component="ComponentInfo{com.samsung.android.messaging/com.samsung.android.messaging.ui.view.main.WithActivity}" drawable="ic_messages" />
+    <item component="ComponentInfo{com.google.android.apps.messaging/com.google.android.apps.messaging.ui.ConversationListActivity}" drawable="ic_messages" />
+    <item component="ComponentInfo{com.android.mms/com.android.mms.ui.ConversationList}" drawable="ic_messages" />
+
+    <!-- Gallery -->
+    <item component="ComponentInfo{com.sec.android.gallery3d/com.sec.android.gallery3d.app.GalleryActivity}" drawable="ic_gallery" />
+    <item component="ComponentInfo{com.google.android.apps.photos/com.google.android.apps.photos.home.HomeActivity}" drawable="ic_gallery" />
+
+    <!-- Camera -->
+    <item component="ComponentInfo{com.sec.android.app.camera/com.sec.android.app.camera.Camera}" drawable="ic_camera" />
+    <item component="ComponentInfo{com.google.android.GoogleCamera/com.android.camera.CameraLauncher}" drawable="ic_camera" />
+    <item component="ComponentInfo{com.android.camera2/com.android.camera.CameraLauncher}" drawable="ic_camera" />
+
+</resources>

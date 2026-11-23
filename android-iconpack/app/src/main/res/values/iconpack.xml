@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string-array name="icon_pack">
+        <item>ic_clock</item>
+        <item>ic_calendar</item>
+        <item>ic_launcher_app</item>
+        <item>ic_games</item>
+        <item>ic_videocall</item>
+        <item>ic_docs</item>
+        <item>ic_calculator</item>
+        <item>ic_settings</item>
+        <item>ic_maps</item>
+        <item>ic_files</item>
+        <item>ic_phone</item>
+        <item>ic_messages</item>
+        <item>ic_gallery</item>
+        <item>ic_camera</item>
+    </string-array>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <version>1</version>
+    <category title="Widgets &amp; Essentials" />
+    <item drawable="ic_clock" />
+    <item drawable="ic_calendar" />
+    <category title="Core Apps" />
+    <item drawable="ic_launcher_app" />
+    <item drawable="ic_games" />
+    <item drawable="ic_videocall" />
+    <item drawable="ic_docs" />
+    <item drawable="ic_calculator" />
+    <item drawable="ic_settings" />
+    <item drawable="ic_maps" />
+    <item drawable="ic_files" />
+    <category title="Dock" />
+    <item drawable="ic_phone" />
+    <item drawable="ic_messages" />
+    <item drawable="ic_gallery" />
+    <item drawable="ic_camera" />
+</resources>
