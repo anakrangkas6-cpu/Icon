@@ -17,7 +17,7 @@ export const CodeInspector: React.FC = () => {
     return {
       workflow: {
         path: '.github/workflows/build-apk.yml',
-        content: getGitHubWorkflowYaml('android-iconpack'),
+        content: getGitHubWorkflowYaml(),
       },
       appfilter: {
         path: 'android-iconpack/app/src/main/res/xml/appfilter.xml',

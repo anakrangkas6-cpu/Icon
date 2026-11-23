@@ -4,22 +4,13 @@ export interface AndroidXmlBundle {
   iconpackXml: string;
 }
 
-export function getGitHubWorkflowYaml(projectSubdir: '' | 'android-iconpack'): string {
-  const workDir = projectSubdir === 'android-iconpack' ? 'android-iconpack' : '.';
-  const apkBase = projectSubdir === 'android-iconpack' ? 'android-iconpack/app/build/outputs/apk' : 'app/build/outputs/apk';
-
+export function getGitHubWorkflowYaml(): string {
   return `name: Build Sunlit OneUI Icon Pack APK
 
 on:
   push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
   pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build-apk:
@@ -30,90 +21,78 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Detect Android project directory
+        run: |
+          if [ -f "android-iconpack/build.gradle.kts" ]; then
+            echo "PROJECT_DIR=android-iconpack" >> "$GITHUB_ENV"
+          else
+            echo "PROJECT_DIR=." >> "$GITHUB_ENV"
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses & ensure SDK 34
+        run: |
+          SDK_ROOT="\${ANDROID_HOME:-\${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=\$SDK_ROOT" >> "$GITHUB_ENV"
+          SDK_MGR=\$(find "\$SDK_ROOT" -name "sdkmanager" 2>/dev/null | head -n 1)
+          if [ -n "\$SDK_MGR" ]; then
+            yes | "\$SDK_MGR" --licenses >/dev/null 2>&1 || true
+            "\$SDK_MGR" "platforms;android-34" "build-tools;34.0.0" >/dev/null
+          fi
 
-      - name: Set up Gradle
+      - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: Ensure PNG icon assets from SVG if needed
-        working-directory: ${workDir}
+      - name: Build & Sign Debug + Release APKs
         run: |
-          if [ -d "svg" ] && [ ! -f "app/src/main/res/drawable-nodpi/ic_clock.png" ]; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq librsvg2-bin fontconfig curl
-            mkdir -p ~/.local/share/fonts
-            curl -sSL -o ~/.local/share/fonts/Antonio-Bold.ttf "https://github.com/google/fonts/raw/main/ofl/antonio/static/Antonio-Bold.ttf" || true
-            curl -sSL -o ~/.local/share/fonts/Outfit-Bold.ttf "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-Bold.ttf" || true
-            curl -sSL -o ~/.local/share/fonts/Outfit-SemiBold.ttf "https://github.com/google/fonts/raw/main/ofl/outfit/static/Outfit-SemiBold.ttf" || true
-            fc-cache -f
-            mkdir -p app/src/main/res/drawable-nodpi
-            cd svg
-            for f in *.svg; do
-              name=$(basename "$f" .svg)
-              rsvg-convert -w 512 -h 512 "$f" -o "../app/src/main/res/drawable-nodpi/\${name}.png"
-            done
-          fi
-
-      - name: Build Debug & Release APKs
-        working-directory: ${workDir}
-        run: gradle assembleDebug assembleRelease --no-daemon
-
-      - name: Sign Release APK
-        run: |
-          UNSIGNED_APK="${apkBase}/release/app-release-unsigned.apk"
-          SIGNED_APK="SunlitOneUI-IconPack-release.apk"
-          DEBUG_APK="${apkBase}/debug/app-debug.apk"
-          cp "$DEBUG_APK" "SunlitOneUI-IconPack-debug.apk"
-
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name "apksigner" | sort -V | tail -n 1)
-          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -name "zipalign" | sort -V | tail -n 1)
-
+          cd "\$PROJECT_DIR"
           if [ -n "\${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "\${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
             KS_PASS="\${{ secrets.KEYSTORE_PASSWORD }}"
             KEY_ALIAS="\${{ secrets.KEY_ALIAS }}"
             KEY_PASS="\${{ secrets.KEY_PASSWORD }}"
           else
-            keytool -genkeypair -v -keystore release.keystore -alias sunlit -keyalg RSA -keysize 2048 -validity 10000 -storepass sunlit123 -keypass sunlit123 -dname "CN=Sunlit OneUI, O=IconPack, C=ID"
+            keytool -genkeypair -noprompt -keystore release.keystore -alias sunlit -keyalg RSA -keysize 2048 -validity 10000 -storepass sunlit123 -keypass sunlit123 -dname "CN=Sunlit OneUI, O=IconPack, C=ID"
             KS_PASS="sunlit123"
             KEY_ALIAS="sunlit"
             KEY_PASS="sunlit123"
           fi
 
-          "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" aligned-release.apk
-          "$APKSIGNER" sign --ks release.keystore --ks-pass "pass:$KS_PASS" --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" --out "$SIGNED_APK" aligned-release.apk
-          rm -f release.keystore aligned-release.apk
+          gradle assembleDebug assembleRelease --no-daemon \\
+            -Pandroid.injected.signing.store.file="\$(pwd)/release.keystore" \\
+            -Pandroid.injected.signing.store.password="\$KS_PASS" \\
+            -Pandroid.injected.signing.key.alias="\$KEY_ALIAS" \\
+            -Pandroid.injected.signing.key.password="\$KEY_PASS"
 
-      - name: Upload Signed APK Artifacts
+          rm -f release.keystore
+
+          mkdir -p "\$GITHUB_WORKSPACE/dist-apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "\$GITHUB_WORKSPACE/dist-apk/SunlitOneUI-IconPack-debug.apk"
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk "\$GITHUB_WORKSPACE/dist-apk/SunlitOneUI-IconPack-release.apk"
+          elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            cp app/build/outputs/apk/release/app-release-unsigned.apk "\$GITHUB_WORKSPACE/dist-apk/SunlitOneUI-IconPack-release-unsigned.apk"
+          fi
+
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SunlitOneUI-IconPack-APK
-          path: |
-            SunlitOneUI-IconPack-release.apk
-            SunlitOneUI-IconPack-debug.apk
+          path: dist-apk/*.apk
           retention-days: 30
-
-      - name: Publish GitHub Release on Tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            SunlitOneUI-IconPack-release.apk
-            SunlitOneUI-IconPack-debug.apk
 `;
 }
 
 export function getAndroidProjectFiles(xml: AndroidXmlBundle): Record<string, string> {
   return {
-    '.github/workflows/build-apk.yml': getGitHubWorkflowYaml(''),
+    '.github/workflows/build-apk.yml': getGitHubWorkflowYaml(),
     '.gitignore': `.gradle/
 build/
 app/build/
@@ -160,7 +139,7 @@ rootProject.name = "SunlitOneUIIconPack"
 include(":app")
 `,
     'build.gradle.kts': `plugins {
-    id("com.android.application") version "8.5.2" apply false
+    id("com.android.application") version "8.4.2" apply false
     id("org.jetbrains.kotlin.android") version "1.9.24" apply false
 }
 `,
@@ -176,12 +155,12 @@ android.nonTransitiveRClass=true
 
 android {
     namespace = "com.sunlit.oneui.iconpack"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.sunlit.oneui.iconpack"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
     }
@@ -285,7 +264,7 @@ dependencies {
     <string name="btn_open_themepark">Buka Theme Park (Good Lock)</string>
     <string name="btn_apply_wallpaper">Pasang Wallpaper Sunset</string>
     <string name="guide_title">Cara Terapkan di Samsung Good Lock</string>
-    <string name="guide_steps">1. Buka Good Lock -> Theme Park -> tab Icon.\n2. Tekan Create New -> pilih tombol Iconpack.\n3. Pilih Sunlit OneUI lalu tekan Save &amp; Apply.</string>
+    <string name="guide_steps">1. Buka Good Lock &gt; Theme Park &gt; tab Icon.\n2. Tekan Create New &gt; pilih tombol Iconpack.\n3. Pilih Sunlit OneUI lalu tekan Save &amp; Apply.</string>
 </resources>
 `,
     'app/src/main/res/values/themes.xml': `<?xml version="1.0" encoding="utf-8"?>
